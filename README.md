@@ -1,15 +1,17 @@
-# Contribution [#]: [Issue Title]
+# Contribution 1: Update goreleaser config and release workflow
 
-**Contribution Number:** [1 / 2 / 3]  
-**Student:** [Your Name]  
-**Issue:** [GitHub issue link]  
-**Status:** [Phase I / Phase II / Phase III / Phase IV] [In Progress / Complete]
+**Contribution Number:** 1
+**Student:** Anthony Zhou
+**Issue:** https://github.com/kevinanielsen/go-fast-cdn/issues/232
+**Status:** Phase I - Complete
 
 ---
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs explaining why this issue interests you, how it matches your skills/learning goals, what you hope to learn]
+I picked this issue because I want more hands-on experience with real CI and release pipelines, not just running builds locally. Updating the GoReleaser config and fixing a failing release workflow feels like a practical way to learn how Go projects are actually shipped in production.
+
+It also lines up with my goal of getting better at debugging problems that only show up in CI. By working through why the release job fails while local and Docker builds pass, I’m hoping to deepen my understanding of how environment differences and configuration choices affect a project’s reliability.
 
 ---
 
@@ -17,19 +19,19 @@
 
 ### Problem Description
 
-[In your own words, what's broken or missing?]
+The release workflow for this project is out of date and unreliable. The GoReleaser config uses an old version format and deprecated options, and the release job fails with Go build errors even though local and Docker builds succeed.
 
 ### Expected Behavior
 
-[What should happen?]
+The release workflow should run successfully in GitHub Actions using a current GoReleaser configuration. It should build the project without warnings or Go build errors, producing the expected release artifacts.
 
 ### Current Behavior
 
-[What actually happens?]
+When the release workflow runs, GoReleaser reports that only version 2 configuration files are supported and that archives.format is deprecated. The workflow then fails with Go build errors that do not appear when running the build locally or via the Dockerfile.
 
 ### Affected Components
 
-[Which parts of the codebase are involved?]
+This primarily affects the GoReleaser configuration file (.goreleaser.yaml) and the GitHub Actions release workflow, as well as the Go build configuration used during that workflow.
 
 ---
 
