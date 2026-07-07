@@ -1,9 +1,22 @@
+# Open Source Contributions — go-fast-cdn
+
+**Student:** Anthony Zhou  
+**Repository:** https://github.com/kevinanielsen/go-fast-cdn  
+**Fork:** https://github.com/developer-az/go-fast-cdn
+
+| # | Issue | Status |
+|---|-------|--------|
+| 1 | [#232 — Update goreleaser config and release workflow](https://github.com/kevinanielsen/go-fast-cdn/issues/232) | **Complete** |
+| 2 | [#232 follow-up — Replace deprecated `archives.builds` with `ids`](https://github.com/kevinanielsen/go-fast-cdn/issues/232) | **PR Open** ([#248](https://github.com/kevinanielsen/go-fast-cdn/pull/248)) |
+
+---
+
 # Contribution 1: Update goreleaser config and release workflow
 
-**Contribution Number:** 1
-**Student:** Anthony Zhou
-**Issue:** https://github.com/kevinanielsen/go-fast-cdn/issues/232
-**Status:** Phase I - Complete
+**Contribution Number:** 1  
+**Issue:** https://github.com/kevinanielsen/go-fast-cdn/issues/232  
+**Status:** Complete  
+**Issue comment:** https://github.com/kevinanielsen/go-fast-cdn/issues/232#issuecomment-4645216364
 
 ---
 
@@ -25,13 +38,13 @@ The release workflow for this project is out of date and unreliable. The GoRelea
 
 The release workflow should run successfully in GitHub Actions using a current GoReleaser configuration. It should build the project without warnings or Go build errors, producing the expected release artifacts.
 
-### Current Behavior
+### Current Behavior (at time of investigation)
 
-When the release workflow runs, GoReleaser reports that only version 2 configuration files are supported and that archives.format is deprecated. The workflow then fails with Go build errors that do not appear when running the build locally or via the Dockerfile.
+When the release workflow runs, GoReleaser reports that only version 2 configuration files are supported and that `archives.format` is deprecated. The workflow then fails with CGO-related Go build errors that do not appear when running the build locally or via the Dockerfile.
 
 ### Affected Components
 
-This primarily affects the GoReleaser configuration file (.goreleaser.yaml) and the GitHub Actions release workflow, as well as the Go build configuration used during that workflow.
+This primarily affects the GoReleaser configuration file (`.goreleaser.yaml`) and the GitHub Actions release workflow, as well as the Go build configuration used during that workflow.
 
 ---
 
@@ -47,7 +60,7 @@ This primarily affects the GoReleaser configuration file (.goreleaser.yaml) and 
 ### Steps to Reproduce
 
 1. Fork or clone the upstream repo at the state before PR #234 (commit `d3398fd`)
-2. Trigger the release workflow manually via GitHub Actions (workflow_dispatch) or push a tag
+2. Trigger the release workflow manually via GitHub Actions (`workflow_dispatch`) or push a tag
 3. Observe the GoReleaser step fail with: `WARN only version: 2 configuration files are supported, yours is version: 0`
 4. Observe the deprecation warning: `DEPRECATED: archives.format should not be used anymore`
 5. Watch the build fail with CGO-related Go build errors that don't occur locally or in the Dockerfile
@@ -93,7 +106,7 @@ Using UMPIRE framework (adapted):
 5. In `.github/workflows/release.yml`: Add a `docker run` step using `goreleaser/goreleaser-cross:v1.27.0` that mounts the workspace and passes `GITHUB_TOKEN`
 6. In `.github/workflows/release.yml`: Fix the tag creation step to add git user config and push the tag to origin
 
-**Implement:** Branch link: https://github.com/developer-az/go-fast-cdn/tree/main
+**Implement:** https://github.com/developer-az/go-fast-cdn/tree/main
 
 **Review:**
 - Follows project's `CONTRIBUTING.md` guidelines
@@ -101,7 +114,7 @@ Using UMPIRE framework (adapted):
 - Workflow changes are minimal and targeted
 - Config changes match GoReleaser v2 documentation
 
-**Evaluate:** Verify by triggering the release workflow on the fork with a test tag and confirming GoReleaser completes without version warnings, deprecation warnings, or CGO build errors.
+**Evaluate:** Verify by triggering the release workflow and confirming GoReleaser completes without version warnings, CGO build errors, or failed artifact generation.
 
 ---
 
@@ -109,58 +122,53 @@ Using UMPIRE framework (adapted):
 
 ### Unit Tests
 
-- [x] Test case 1: Run `goreleaser check` against the updated `.goreleaser.yaml` to validate config syntax and version compatibility — **passed**, no warnings or errors
-- [x] Test case 2: Run `make test-release` (goreleaser-cross snapshot build) locally using Docker to confirm CGO cross-compilation succeeds for all targets — **passed**, snapshot artifacts produced for all 6 platforms
-- [x] Test case 3: Run `go test ./...` to confirm existing unit tests still pass after workflow changes — **passed**, all tests green
+- [x] Test case 1: Run `goreleaser release --snapshot --clean` via `goreleaser-cross` Docker image — **passed**, snapshot artifacts produced for all 6 platforms
+- [x] Test case 2: Run `pnpm --dir=./ui build` + `go test ./...` to confirm the project still builds and tests — **passed** on Linux CI; local Windows run blocked by disk space during CGO compile
+- [x] Test case 3: Run `goreleaser check` — **partial**: original `version: 0` and `archives.format` issues resolved on `main`; one remaining deprecation (`archives.builds`) identified for Contribution 2
 
 ### Integration Tests
 
-- [x] Trigger the release workflow on the fork via `workflow_dispatch` with a test tag to verify end-to-end CI success — **verified** via upstream CI run: [kevinanielsen/go-fast-cdn/actions/runs/22641464756](https://github.com/kevinanielsen/go-fast-cdn/actions/runs/22641464756/job/65618351522)
-- [x] Confirm all expected release artifacts (binaries + archives for all 6 platforms) are produced without warnings or errors — **confirmed**, artifacts generated for linux-amd64, linux-arm64, linux-armv7, darwin-amd64, darwin-arm64, windows-amd64
+- [x] Confirm upstream release workflow succeeds on `main` — **passed**: [upstream run 22668518856](https://github.com/kevinanielsen/go-fast-cdn/actions/runs/22668518856)
+- [x] Confirm all expected release artifacts (binaries + archives for all 6 platforms) — **confirmed**: linux-amd64, linux-arm64, linux-armv7, darwin-amd64, darwin-arm64, windows-amd64
 
 ### Manual Testing
 
-Ran `make test-release` locally using the `goreleaser/goreleaser-cross:v1.27.0` Docker image after updating the config. GoReleaser completed without version or deprecation warnings and produced snapshot artifacts for all configured platforms.
+Ran `goreleaser release --snapshot --clean` locally using the `goreleaser/goreleaser-cross:v1.27.0` Docker image against upstream `main`. GoReleaser completed without the original version or `archives.format` deprecation warnings and produced snapshot artifacts for all configured platforms.
 
 ---
 
 ## Implementation Notes
 
-### Week 1 Progress
+### Progress Summary
 
-Investigated the failing CI run and identified both root causes: the missing `version: 2` declaration and the lack of CGO cross-compilation toolchains in the standard goreleaser GitHub Action. Studied how the maintainer's fix in PR #234 switched to `goreleaser-cross` via Docker, and how PR #237 corrected the `format` to `formats` deprecation. Confirmed the fork is in sync with upstream main.
+Investigated the failing CI run and independently identified both root causes: the missing `version: 2` declaration and the lack of CGO cross-compilation toolchains in the standard goreleaser GitHub Action. Validated the fix on upstream `main` after PR #234 and PR #237 merged. Confirmed the fork is in sync with upstream.
 
-### Implementation Summary
+### Outcome
 
-Two files were modified to resolve the dual root causes identified in the analysis:
+The primary issues described in #232 were fixed upstream before I opened a separate PR:
 
-**`.goreleaser.yaml`** — Added `version: 2` as the first line (required by GoReleaser v2) and changed all 7 `format: zip` entries in the `archives` section to `formats: zip`. Additionally, the single-target `builds` block was replaced with 6 explicit per-platform build configs (linux-amd64, linux-arm64, linux-armv7, darwin-amd64, darwin-arm64, windows-amd64), each specifying the correct CGO cross-compiler toolchain (`CC`/`CXX` env vars). A dedicated `checksum` block and updated `changelog` filters were also added.
+| Change | Upstream PR | Status on `main` |
+|--------|-------------|------------------|
+| `version: 2` + goreleaser-cross in CI | [#234](https://github.com/kevinanielsen/go-fast-cdn/pull/234) | Merged |
+| `format` → `formats` in archives | [#237](https://github.com/kevinanielsen/go-fast-cdn/pull/237) | Merged |
+| Release workflow green on `main` | [run 22668518856](https://github.com/kevinanielsen/go-fast-cdn/actions/runs/22668518856) | Verified |
 
-**`.github/workflows/release.yml`** — Removed the `goreleaser/goreleaser-action@v6` step that ran GoReleaser in the bare GitHub Actions runner (which has no CGO toolchains). Added a `docker/setup-buildx-action@v3` step followed by a `docker run` step using `goreleaser/goreleaser-cross:v1.27.0`, which bundles all required cross-compilation toolchains. Also fixed the manual-dispatch tag step to include `git config` user identity before tagging and to explicitly `git push origin <tag>`, preventing the tag from only existing locally.
+My analysis matched the maintainer's solution. I commented on the issue to claim it and documented reproduction steps, root-cause analysis, and local validation. One remaining GoReleaser deprecation (`archives.builds` → `archives.ids`) is tracked as Contribution 2.
 
-### Branch Link
+### Key Upstream Commits Referenced
 
-https://github.com/developer-az/go-fast-cdn/tree/main
-
-### Code Changes
-
-- **Files modified:** `.goreleaser.yaml`, `.github/workflows/release.yml`
-- **Key commits:** [`20a5bcb`](https://github.com/developer-az/go-fast-cdn/commit/20a5bcb) CI: Fix release workflow — switched to goreleaser-cross Docker image, fixed tag push step; [`9b7b9fb`](https://github.com/developer-az/go-fast-cdn/commit/9b7b9fb) Change 'format' to 'formats' in goreleaser config
-- **Approach decisions:** Used `goreleaser/goreleaser-cross:v1.27.0` (same version as upstream fix) rather than `latest` to ensure reproducible builds
+- [`20a5bcb`](https://github.com/kevinanielsen/go-fast-cdn/commit/20a5bcb) — CI: Fix release workflow (goreleaser-cross Docker image, tag push fix)
+- [`9b7b9fb`](https://github.com/kevinanielsen/go-fast-cdn/commit/9b7b9fb) — Change `format` to `formats` in goreleaser config
 
 ---
 
 ## Pull Request
 
-**PR Link:** [GitHub PR URL when submitted]
+**PR Link:** N/A — equivalent fix merged upstream via [#234](https://github.com/kevinanielsen/go-fast-cdn/pull/234) and [#237](https://github.com/kevinanielsen/go-fast-cdn/pull/237) before a separate PR was submitted under my account.
 
-**PR Description:** [Draft or final PR description - much of the content above can be adapted]
+**Maintainer Feedback:** No direct reply to my issue comment yet. Release workflow success on `main` confirms the fix is in production.
 
-**Maintainer Feedback:**
-- [Date]: [Summary of feedback received]
-- [Date]: [How you addressed it]
-
-**Status:** Awaiting review
+**Status:** Complete (investigation, validation, and issue claim documented; upstream fix verified)
 
 ---
 
@@ -168,15 +176,20 @@ https://github.com/developer-az/go-fast-cdn/tree/main
 
 ### Technical Skills Gained
 
-[What you learned technically]
+- How GoReleaser v2 config versioning works and why deprecated fields break CI silently
+- Why CGO cross-compilation requires platform-specific toolchains that plain GitHub Actions runners lack
+- How to use `goreleaser-cross` Docker for reproducible multi-platform releases
+- How to compare local, Docker, and CI build environments to isolate environment-specific failures
 
 ### Challenges Overcome
 
-[What was hard and how you solved it]
+- Discovering that upstream had already merged the fix while I was still documenting my approach — learned to check open PRs and `main` branch state early
+- Validating releases on Windows required Docker path mounting and dealing with local disk constraints during CGO builds
 
 ### What I'd Do Differently Next Time
 
-[Reflection on your process]
+- Comment on the issue and open a draft PR earlier, before spending time re-implementing a fix that may already be in flight
+- Run `goreleaser check` first — it surfaces deprecations like `archives.builds` that snapshot releases still tolerate
 
 ---
 
@@ -188,3 +201,113 @@ https://github.com/developer-az/go-fast-cdn/tree/main
 - [kevinanielsen/go-fast-cdn issue #232](https://github.com/kevinanielsen/go-fast-cdn/issues/232)
 - [Upstream fix PR #234](https://github.com/kevinanielsen/go-fast-cdn/pull/234)
 - [Upstream fix PR #237](https://github.com/kevinanielsen/go-fast-cdn/pull/237)
+
+---
+---
+
+# Contribution 2: Replace deprecated `archives.builds` in GoReleaser config
+
+**Contribution Number:** 2  
+**Issue:** https://github.com/kevinanielsen/go-fast-cdn/issues/232 (follow-up)  
+**Status:** In Progress — PR submitted  
+**Planned branch:** `fix/goreleaser-archives-ids` (pushed)
+
+---
+
+## Why I'm Continuing on #232
+
+Contribution 1 resolved the original release workflow failures (`version: 0`, `archives.format`, CGO build errors). After validating upstream `main`, `goreleaser check` still reports:
+
+```
+DEPRECATED: archives.builds should not be used anymore
+configuration is valid, but uses deprecated properties
+```
+
+GoReleaser v2.8+ renamed `archives.builds` to `archives.ids`. Snapshot releases work, but `goreleaser check` fails until this is updated. This is a small, non-duplicate follow-up where I can submit my own PR.
+
+---
+
+## Understanding the Issue
+
+### Problem Description
+
+Each archive entry in `.goreleaser.yaml` uses the deprecated `builds:` key to reference which build target to package. GoReleaser now expects `ids:` instead.
+
+### Expected Behavior
+
+`goreleaser check` passes with no deprecation warnings or errors.
+
+### Current Behavior
+
+`goreleaser check` exits with an error citing deprecated `archives.builds`. Snapshot releases still succeed.
+
+### Affected Components
+
+- `.goreleaser.yaml` — 6 archive entries under `archives:` (lines ~110–163)
+
+---
+
+## Proposed Solution
+
+Rename `builds:` to `ids:` inside each `archives:` block (do **not** change the top-level `builds:` section that defines compile targets):
+
+```yaml
+# Before
+archives:
+  - id: linux-amd64
+    builds:
+      - linux-amd64
+
+# After
+archives:
+  - id: linux-amd64
+    ids:
+      - linux-amd64
+```
+
+Reference: [GoReleaser deprecations — archives.builds](https://goreleaser.com/deprecations/#archivesbuilds)
+
+---
+
+## Implementation Plan
+
+1. ~~Comment on [#232](https://github.com/kevinanielsen/go-fast-cdn/issues/232) with a progress update and intent to open a follow-up PR~~
+2. ~~Create branch `fix/goreleaser-archives-ids` from upstream `main`~~
+3. ~~Replace `builds:` with `ids:` in all 6 archive entries in `.goreleaser.yaml`~~
+4. Run `goreleaser check` via `goreleaser/goreleaser-cross:v1.27.0` Docker image
+5. Run `goreleaser release --snapshot --clean` to confirm all 6 platform artifacts still build
+6. ~~Open draft PR to upstream with `Fixes #232` in the description~~
+
+### Code Changes
+
+- **File modified:** `.goreleaser.yaml`
+- **Change:** Renamed `builds:` → `ids:` in all 6 archive entries (6 insertions, 6 deletions)
+- **Branch:** https://github.com/developer-az/go-fast-cdn/tree/fix/goreleaser-archives-ids
+- **Commit:** `c5a1336` — fix: replace deprecated archives.builds with ids in goreleaser config
+
+---
+
+## Testing Strategy
+
+- [ ] `goreleaser check` — passes with no deprecation warnings
+- [ ] `goreleaser release --snapshot --clean` — all 6 platform zips produced
+- [ ] `go test ./...` — existing tests still pass
+
+---
+
+## Pull Request
+
+**PR Link:** https://github.com/kevinanielsen/go-fast-cdn/pull/248
+
+**Status:** Open — awaiting maintainer review
+
+**Suggested follow-up comment on [#232](https://github.com/kevinanielsen/go-fast-cdn/issues/232):**
+
+> Update: The original release workflow issues are fixed on `main` (#234/#237). I opened PR #248 to address the remaining GoReleaser deprecation (`archives.builds` → `archives.ids`) so `goreleaser check` passes cleanly.
+
+---
+
+## Resources Used
+
+- [GoReleaser deprecations — archives.builds](https://goreleaser.com/deprecations/#archivesbuilds)
+- [kevinanielsen/go-fast-cdn issue #232](https://github.com/kevinanielsen/go-fast-cdn/issues/232)
