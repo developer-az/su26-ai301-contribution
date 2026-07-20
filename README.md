@@ -203,14 +203,13 @@ My analysis matched the maintainer's solution. I commented on the issue to claim
 - [Upstream fix PR #237](https://github.com/kevinanielsen/go-fast-cdn/pull/237)
 
 ---
----
 
 # Contribution 2: Replace deprecated `archives.builds` in GoReleaser config
 
 **Contribution Number:** 2  
 **Issue:** https://github.com/kevinanielsen/go-fast-cdn/issues/232 (follow-up)  
-**Status:** In Progress — PR submitted  
-**Planned branch:** `fix/goreleaser-archives-ids` (pushed)
+**Status:** In Progress — PR open ([#248](https://github.com/kevinanielsen/go-fast-cdn/pull/248))  
+**Branch:** `fix/goreleaser-archives-ids`
 
 ---
 
@@ -269,14 +268,14 @@ Reference: [GoReleaser deprecations — archives.builds](https://goreleaser.com/
 
 ---
 
-## Implementation Plan
+## Implementation Progress
 
 1. ~~Comment on [#232](https://github.com/kevinanielsen/go-fast-cdn/issues/232) with a progress update and intent to open a follow-up PR~~
 2. ~~Create branch `fix/goreleaser-archives-ids` from upstream `main`~~
 3. ~~Replace `builds:` with `ids:` in all 6 archive entries in `.goreleaser.yaml`~~
-4. Run `goreleaser check` via `goreleaser/goreleaser-cross:v1.27.0` Docker image
-5. Run `goreleaser release --snapshot --clean` to confirm all 6 platform artifacts still build
-6. ~~Open draft PR to upstream with `Fixes #232` in the description~~
+4. ~~Run `goreleaser check` via `goreleaser/goreleaser-cross:v1.27.0` Docker image~~
+5. Run `goreleaser release --snapshot --clean` to reconfirm all 6 platform artifacts still build
+6. ~~Open PR to upstream with `Fixes #232` in the description~~
 
 ### Code Changes
 
@@ -289,9 +288,9 @@ Reference: [GoReleaser deprecations — archives.builds](https://goreleaser.com/
 
 ## Testing Strategy
 
-- [ ] `goreleaser check` — passes with no deprecation warnings
-- [ ] `goreleaser release --snapshot --clean` — all 6 platform zips produced
-- [ ] `go test ./...` — existing tests still pass
+- [x] `goreleaser check` — run via `goreleaser/goreleaser-cross:v1.27.0` (documented in PR #248)
+- [ ] `goreleaser release --snapshot --clean` — not re-run yet for this follow-up change
+- [ ] `go test ./...` — not re-run yet for this follow-up change
 
 ---
 
