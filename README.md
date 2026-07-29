@@ -7,7 +7,7 @@
 | # | Issue | Status |
 |---|-------|--------|
 | 1 | [#232 — Update goreleaser config and release workflow](https://github.com/kevinanielsen/go-fast-cdn/issues/232) | **Complete** |
-| 2 | [#232 follow-up — Replace deprecated `archives.builds` with `ids`](https://github.com/kevinanielsen/go-fast-cdn/issues/232) | **PR Open** ([#248](https://github.com/kevinanielsen/go-fast-cdn/pull/248)) |
+| 2 | [#232 follow-up — Replace deprecated `archives.builds` with `ids`](https://github.com/kevinanielsen/go-fast-cdn/issues/232) | **Submitted — Awaiting Review** ([#248](https://github.com/kevinanielsen/go-fast-cdn/pull/248)) |
 
 ---
 
@@ -209,7 +209,7 @@ My analysis matched the maintainer's solution. I commented on the issue to claim
 
 **Contribution Number:** 2  
 **Issue:** https://github.com/kevinanielsen/go-fast-cdn/issues/232 (follow-up)  
-**Status:** In Progress — PR submitted  
+**Status:** Submitted — Awaiting Review  
 **Planned branch:** `fix/goreleaser-archives-ids` (pushed)
 
 ---
